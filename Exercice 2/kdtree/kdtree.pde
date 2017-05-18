@@ -1,4 +1,3 @@
-
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Locale;
@@ -13,13 +12,10 @@ import java.util.Locale;
   }
   
   void initPoints(int num_points){
-    num_points = Math.max(1, num_points);
     
-    float o = 40;
-    randomSeed(10);
     points = new Point[num_points];
     for(int i = 0; i < points.length; i++){
-      points[i] = new Point(random(o,width-o),random(o,height-o));
+      points[i] = new Point(random(width),random(height));
     }
 
     kd_tree = new KdTree(points);
@@ -27,7 +23,7 @@ import java.util.Locale;
 
   public void draw() {
     
-    background(255);
+    background(0);
     
     kd_tree.draw(this.g, !keyPressed, true,  0, 0, width, height);
   }
@@ -116,8 +112,8 @@ import java.util.Locale;
     public void drawPoints(PGraphics g, KdTree.Node node){
       if( node.isFeuille() ){
         g.strokeWeight(2);
-        g.stroke(0);
-        g.fill(0);
+        g.stroke(255,0,0);
+        g.fill(255,0,0);
         g.ellipse(node.pnt.x,node.pnt.y, 4, 4); 
       } else {
         drawPoints(g, node.L);
