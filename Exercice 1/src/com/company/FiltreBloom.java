@@ -40,13 +40,13 @@ public class FiltreBloom {
     public FiltreBloom(int noItems, int bitsPerItem, int noHashes) {
         int bitsRequired = noItems * bitsPerItem;
         if (bitsRequired >= Integer.MAX_VALUE) {
-            throw new IllegalArgumentException("Bloom filter would be too big");
+            throw new IllegalArgumentException("FIltre trop gros");
         }
         int logBits = 4;
         while ((1 << logBits) < bitsRequired)
             logBits++;
         if (noHashes < 1 || noHashes > MAX_HASHES)
-            throw new IllegalArgumentException("Invalid number of hashes");
+            throw new IllegalArgumentException("nombre de has invalide");
         this.data = new BitSet(1 << logBits);
         this.noHashes = noHashes;
         this.hashMask = (1 << logBits) - 1;
