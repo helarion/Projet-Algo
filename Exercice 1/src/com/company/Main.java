@@ -1,13 +1,11 @@
 package com.company;
 
-import java.math.BigDecimal;
 import java.util.ArrayList;
 
 public class Main {
 
     public static String creerMot()
     {
-        boolean fin=false;
         String mot="";
         int num;
         String lettre;
@@ -46,7 +44,7 @@ public class Main {
                     if(!mots.contains(mot))
                     {
                         compteurMotsTest++;
-                        if(fb.contains(mot))
+                        if(fb.contiens(mot))
                         {
                             compteurFauxPositifs++;
                         }

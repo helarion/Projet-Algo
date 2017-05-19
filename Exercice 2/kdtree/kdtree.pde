@@ -171,7 +171,7 @@ import java.util.Locale;
         
         public PlusProche getPlusProche(PlusProche PlusProche, boolean reset_min_sq)
         {
-          if(reset_min_sq) PlusProche.min_sq = Float.MAX_VALUE;
+          if(reset_min_sq) PlusProche.min = Float.MAX_VALUE;
           getPlusProche(PlusProche, racine);
           return PlusProche;
         }
