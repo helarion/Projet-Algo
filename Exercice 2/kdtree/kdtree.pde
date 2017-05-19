@@ -3,174 +3,248 @@ import java.util.Comparator;
 import java.util.Locale;
 
   PVector[] liste_PVectors;
-  Arbre kd_tree;
+  Arbre arbre;
 
   public void setup() 
   {
-    init(100);
+    initialiser(100);
     size(800, 600);
   }
   
-  void init(int nb_PVectors)
+  void initialiser(int nb_PVectors)
   {
       liste_PVectors = new PVector[nb_PVectors];
       for(int i = 0; i < liste_PVectors.length; i++){
         liste_PVectors[i] = new PVector(random(width),random(height));
       }
  
-      kd_tree = new Arbre(liste_PVectors);
+      arbre = new Arbre(liste_PVectors);
   }
 
+  public  class Noeud
+      {
+          int profondeur;
+          PVector pointProche;
+          Noeud gauche;
+          Noeud droite;
+          
+          public Noeud(int profondeur)
+          {
+            this.profondeur = profondeur;
+          }
+          boolean isBranche()
+          {
+              return (gauche==null) | (droite==null);
+          }
+      }  
 
-   public static class Arbre
+   public  class Arbre
    {
       int max_profondeur = 0;
-      Arbre.Node root;
+      Noeud racine;
       
       public Arbre(PVector[] PVectors)
       {
         max_profondeur = (int) Math.ceil( Math.log(PVectors.length) / Math.log(2) );
-        build( root = new Arbre.Node(0) , PVectors);      
+        creer( racine = new Noeud(0), PVectors);      
       }
   
-      private final static TriABulle quick_sort = new TriABulle();
+      private   TriABulle triABulle = new TriABulle();
     
-      private void build(final Arbre.Node node, final PVector[] PVectors)
+      private void creer( Noeud Noeud,  PVector[] PVectors)
       {      
-        final int e = PVectors.length;
-        final int m = e>>1;
+         int e = PVectors.length;
+         int m = e>>1;
   
         if( e > 1 )
         {
-            int profondeur = node.profondeur;
-            quick_sort.sort(PVectors, profondeur&1);
+            int profondeur = Noeud.profondeur;
+            triABulle.sort(PVectors, profondeur&1);
      
-            build( (node.gauche = new Node(++profondeur)), copier(PVectors, 0, m));
-            build( (node.droite = new Node(  profondeur)), copier(PVectors, m, e));
+            creer( (Noeud.gauche = new Noeud(++profondeur)), copier(PVectors, 0, m));
+            creer( (Noeud.droite = new Noeud(  profondeur)), copier(PVectors, m, e));
         }
-        node.pnt = PVectors[m];
+        Noeud.pointProche = PVectors[m];
       }
     
-      private final static PVector[] copier(final PVector[] src, final int a, final int b)
+      private   PVector[] copier( PVector[] src,  int a,  int b)
       {
-        final PVector[] dst = new PVector[b-a]; 
+         PVector[] dst = new PVector[b-a]; 
         System.arraycopy(src, a, dst, 0, dst.length);
         return dst;
       }
       
-      public int numFeuilles(Arbre.Node n, int num_Feuilles)
+      public int numBranches(Noeud n, int num_Branches)
       {
-          if( n.isFeuille() )
+          if( n.isBranche() )
           {
-            return num_Feuilles+1;
+            return num_Branches+1;
           } 
           else 
           {
-            num_Feuilles = numFeuilles(n.gauche, num_Feuilles);
-            num_Feuilles = numFeuilles(n.droite, num_Feuilles);
-            return num_Feuilles;
+            num_Branches = numBranches(n.gauche, num_Branches);
+            num_Branches = numBranches(n.droite, num_Branches);
+            return num_Branches;
           }
       }
          
       public void draw(PGraphics g, float xMin, float yMin, float xMax, float yMax)
       {
-          drawPlanes(g, root, xMin, yMin, xMax, yMax);
-          Points(g, root);
+          affichage(g, racine, xMin, yMin, xMax, yMax);
+          Points(g, racine);
       }
       
-      public void drawPlanes(PGraphics g, Arbre.Node node, float xMin, float yMin, float xMax, float yMax )
+      public void affichage(PGraphics g, Noeud Noeud, float xMin, float yMin, float xMax, float yMax )
       {
-          if( node != null )
+          if( Noeud != null )
           {
-              PVector pnt = node.pnt;
-              if( (node.profondeur&1) == 0 )
+              PVector pointProche = Noeud.pointProche;
+              if( (Noeud.profondeur&1) == 0 )
               {
-                  drawPlanes(g, node.gauche, xMin, yMin, pnt.x, yMax);
-                  drawPlanes(g, node.droite, pnt.x, yMin, xMax, yMax);
-                  Lignes  (g, node,   pnt.x, yMin, pnt.x, yMax);
+                  affichage(g, Noeud.gauche, xMin, yMin, pointProche.x, yMax);
+                  affichage(g, Noeud.droite, pointProche.x, yMin, xMax, yMax);
+                  Lignes(g, pointProche.x, yMin, pointProche.x, yMax);
               } 
               else 
               {
-                  drawPlanes(g, node.gauche, xMin, yMin, xMax, pnt.y);
-                  drawPlanes(g, node.droite, xMin, pnt.y, xMax, yMax); 
-                  Lignes  (g, node,   xMin, pnt.y, xMax, pnt.y);
+                  affichage(g, Noeud.gauche, xMin, yMin, xMax, pointProche.y);
+                  affichage(g, Noeud.droite, xMin, pointProche.y, xMax, yMax); 
+                  Lignes(g, xMin, pointProche.y, xMax, pointProche.y);
               }
           }
       }
       
-      void Lignes(PGraphics g, Arbre.Node node, float xMin, float yMin, float xMax, float yMax)
+      void Lignes(PGraphics g, float xMin, float yMin, float xMax, float yMax)
       {
-          float dnorm = (node.profondeur)/(float)(max_profondeur+1);
           g.stroke(0,255,0);
           g.strokeWeight(2);
           g.line(xMin, yMin, xMax, yMax);
       }
       
-      public void Points(PGraphics g, Arbre.Node node)
+      public void Points(PGraphics g, Noeud Noeud)
       {
-          if( node.isFeuille() )
+          if( Noeud.isBranche() )
           {
               g.strokeWeight(4);
               g.stroke(255,0,0);
               g.fill(255,0,0);
-              g.ellipse(node.pnt.x,node.pnt.y, 4, 4); 
+              g.ellipse(Noeud.pointProche.x,Noeud.pointProche.y, 4, 4); 
           } 
           else 
           {
-              Points(g, node.gauche);
-              Points(g, node.droite);
+              Points(g, Noeud.gauche);
+              Points(g, Noeud.droite);
           }
       }
       
-      public static class Node
+      public class PlusProche
       {
-          int profondeur;
-          PVector pnt;
-          Node gauche;
-          Node droite;
+          PVector source = null;
+          PVector dest = null;
+          float min = Float.MAX_VALUE;
           
-          public Node(int profondeur)
+          public PlusProche(PVector source)
           {
-            this.profondeur = profondeur;
+            this.source = source;
           }
-          boolean isFeuille()
+          
+          void update(Noeud Noeud)
           {
-              return (gauche==null) | (droite==null);
-          }
-      }  
-  }
+            float dx = Noeud.pointProche.x - source.x;
+            float dy = Noeud.pointProche.y - source.y;
+            float actuel = dx*dx + dy*dy;
     
-  public static final class TriABulleX implements Comparator<PVector>
-  {
-      public int compare(final PVector a, final PVector b) 
+            if( actuel < min && Noeud.pointProche.equals(source)==false){
+              min = actuel;
+              dest = Noeud.pointProche;
+            }
+          }
+        
+        }
+    
+        public PlusProche getPlusProche(PVector point)
+        {
+          PlusProche PlusProche = new PlusProche(point);
+          getPlusProche(PlusProche, racine);
+          return PlusProche;
+        }
+        
+        public PlusProche getPlusProche(PlusProche PlusProche, boolean reset_min_sq)
+        {
+          if(reset_min_sq) PlusProche.min_sq = Float.MAX_VALUE;
+          getPlusProche(PlusProche, racine);
+          return PlusProche;
+        }
+        
+        private void getPlusProche(PlusProche PlusProche, Noeud Noeud)
+        {
+            if( Noeud.isBranche() )
+            {
+                PlusProche.update(Noeud);
+            } 
+            else 
+            {
+                float dist_hp = planeDistance(Noeud, PlusProche.source); 
+                
+                getPlusProche(PlusProche, (dist_hp < 0) ? Noeud.gauche : Noeud.droite);
+                
+                if( (dist_hp*dist_hp) < PlusProche.min )
+                {
+                    getPlusProche(PlusProche, (dist_hp < 0) ? Noeud.droite : Noeud.gauche); 
+                }
+            }
+        }
+        
+        private final float planeDistance(Noeud Noeud, PVector point)
+        {
+            if( (Noeud.profondeur&1) == 0)
+            {
+                return point.x - Noeud.pointProche.x;
+            } 
+            else
+            {
+                return point.y - Noeud.pointProche.y;
+            }
+        }
+      
+      public void trouverPlusProche(int index)
       {
-        return (a.x < b.x) ? -1 : ((a.x > b.x)? +1 : 0);
-      }
-  }
-  
-  public static final class TriABulleY implements Comparator<PVector>
-  {
-      public int compare(final PVector a, final PVector b)
-      {
-        return (a.y < b.y) ? -1 : ((a.y > b.y)? +1 : 0);
+          PVector source=liste_PVectors[index];
+          PVector dest = arbre.getPlusProche(source).dest;
+          strokeWeight(5);
+          stroke(255,0,255);
+          line(source.x, source.y, dest.x, dest.y);
+          
+          float dis = dist( source.x, source.y, dest.x, dest.y);
+          noFill();
+          strokeWeight(2);
+          fill(255,125,255,30);
+          stroke(255,125,255);
+          ellipse( source.x, source.y, dis*2, dis*2); 
       }
   }
  
-  public static class TriABulle
+  public  class TriABulle
   {
-      private int dim = 0;
+      private int d = 0;
       private PVector[] PVectors;
-      private PVector PVectors_t_;
       
-      public void sort(PVector[] PVectors, int dim)
+      public void sort(PVector[] PVectors, int d)
       {
           if (PVectors == null || PVectors.length == 0) return;
           this.PVectors = PVectors;
-          this.dim = dim;
-          TriABulle(0, PVectors.length - 1);
+          this.d = d;
+          lancerTriABulle(0, PVectors.length - 1);
       }
-  
-      private void TriABulle(int bas, int haut)
+      
+      private void echange(int i, int j)
+      {
+          PVector temp = PVectors[i];
+          PVectors[i] = PVectors[j];
+          PVectors[j] = temp;
+      }
+      
+      private void lancerTriABulle(int bas, int haut)
       {
           int i = bas;
           int j = haut;
@@ -178,7 +252,7 @@ import java.util.Locale;
     
           while (i <= j)
           {
-              if( dim == 0 )
+              if( d == 0 )
               {
                   while (PVectors[i].x < pivot.x) i++;
                   while (PVectors[j].x > pivot.x) j--;
@@ -190,15 +264,8 @@ import java.util.Locale;
               }
               if (i <= j)  echange(i++, j--);
           }
-          if (bas <  j) TriABulle(bas,  j);
-          if (i < haut) TriABulle(i, haut);
-      }
-    
-      private void echange(int i, int j)
-      {
-          PVectors_t_ = PVectors[i];
-          PVectors[i] = PVectors[j];
-          PVectors[j] = PVectors_t_;
+          if (bas <  j) lancerTriABulle(bas,  j);
+          if (i < haut) lancerTriABulle(i, haut);
       }
   }
   
@@ -206,5 +273,6 @@ import java.util.Locale;
   public void draw()
   {
     background(0);
-    kd_tree.draw(this.g, 0, 0, width, height);
+    arbre.draw(this.g, 0, 0, width, height);
+    arbre.trouverPlusProche(liste_PVectors.length/2);
   }
