@@ -8,11 +8,23 @@ import java.util.Locale;
   public void setup() 
   {
     
-    //// NOMBRE DE POINTS //////////////
+    // nombre de points voulu définis en paramètre :
     initialiser(100);
     size(800, 600);
+    
+     background(0);
+    arbre.draw(this.g, 0, 0, width, height);
+    
+     for(int i=0;i<liste_PVectors.length;i++){
+        println("point n°"+i+":["+liste_PVectors[i].x+"]["+liste_PVectors[i].y+"]");
+        }
+    
+    // paramettre = indice dans le tableau du point dont on veut connaitre le plus proche 
+    arbre.trouverPlusProche(liste_PVectors.length/2);
   }
   
+  
+  //Crée notre tableau de de points
   void initialiser(int nb_PVectors)
   {
       liste_PVectors = new PVector[nb_PVectors];
@@ -23,6 +35,7 @@ import java.util.Locale;
       arbre = new Arbre(liste_PVectors);
   }
 
+// Defini les noeuds de l'arbre
   public  class Noeud
       {
           int profondeur;
@@ -45,6 +58,7 @@ import java.util.Locale;
       int max_profondeur = 0;
       Noeud racine;
       
+      // Initialise l'arbre en créant le premier noeud
       public Arbre(PVector[] PVectors)
       {
         max_profondeur = (int) Math.ceil( Math.log(PVectors.length) / Math.log(2) );
@@ -53,6 +67,7 @@ import java.util.Locale;
   
       private   TriABulle triABulle = new TriABulle();
     
+      // création des noeuds en fonction du tableau de point :
       private void creer( Noeud Noeud,  PVector[] PVectors)
       {      
          int e = PVectors.length;
@@ -76,6 +91,7 @@ import java.util.Locale;
         return dst;
       }
       
+      /// création des branches en fonction des noeuds :
       public int numBranches(Noeud n, int num_Branches)
       {
           if( n.isBranche() )
@@ -96,6 +112,8 @@ import java.util.Locale;
           Points(g, racine);
       }
       
+      
+      //////////////////// Affichage de l'arbre généré : 
       public void affichage(PGraphics g, Noeud Noeud, float xMin, float yMin, float xMax, float yMax )
       {
           if( Noeud != null )
@@ -139,6 +157,7 @@ import java.util.Locale;
           }
       }
       
+      ///////////////Calcul du plus proche :
       public class PlusProche
       {
           PVector source = null;
@@ -209,14 +228,16 @@ import java.util.Locale;
             }
         }
    
-  ////////////////////TROUVER LE POINT LE PLUS PROCHE DU PARAMETTRE //////////
+  ////////////////////TROUVER LE POINT LE PLUS PROCHE DU PARAMETRE //////////
       public void trouverPlusProche(int index)
       {
           PVector source=liste_PVectors[index];
+       
           PVector dest = arbre.getPlusProche(source).dest;
           strokeWeight(5);
           stroke(255,0,255);
           line(source.x, source.y, dest.x, dest.y);
+          int indexLePlusProche=-1;
           
           float dis = dist( source.x, source.y, dest.x, dest.y);
           noFill();
@@ -224,6 +245,13 @@ import java.util.Locale;
           fill(255,125,255,30);
           stroke(255,125,255);
           ellipse( source.x, source.y, dis*2, dis*2); 
+          println("Le plus proche du point n°"+index+" est aux coordonnées ["+dest.x+"]["+dest.y+"]");
+          for(int i =0;i<liste_PVectors.length;i++){
+              if(liste_PVectors[i].x==dest.x){
+                  indexLePlusProche=i;      
+              }
+          }
+          println("C'est le point n°"+indexLePlusProche);
       }
   }
  
@@ -271,18 +299,8 @@ import java.util.Locale;
           }
           if (bas <  j) lancerTriABulle(bas,  j);
           if (i < haut) lancerTriABulle(i, haut);
+          
       }
-      for(int i=0;i<PVectors[i].length;i++){
-        println("point n°"+i+":["+PVectors[i].x+"]["+PVectors[i].y+"] 
-      }
+
   }
  ////////////////////////////////////////////////////////////////////// 
-  
-  public void draw()
-  {
-    background(0);
-    arbre.draw(this.g, 0, 0, width, height);
-    
-    // paramettre = indice dans le tableau du point dont on veut connaitre le plus proche 
-    arbre.trouverPlusProche(liste_PVectors.length/2);
-  }
