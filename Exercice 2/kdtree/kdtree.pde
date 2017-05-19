@@ -7,6 +7,8 @@ import java.util.Locale;
 
   public void setup() 
   {
+    
+    //// NOMBRE DE POINTS //////////////
     initialiser(100);
     size(800, 600);
   }
@@ -206,7 +208,8 @@ import java.util.Locale;
                 return point.y - Noeud.pointProche.y;
             }
         }
-      
+   
+  ////////////////////TROUVER LE POINT LE PLUS PROCHE DU PARAMETTRE //////////
       public void trouverPlusProche(int index)
       {
           PVector source=liste_PVectors[index];
@@ -224,6 +227,8 @@ import java.util.Locale;
       }
   }
  
+ 
+ ///////////////// TRI DE TABLEAU //////////////////////////////
   public  class TriABulle
   {
       private int d = 0;
@@ -267,12 +272,17 @@ import java.util.Locale;
           if (bas <  j) lancerTriABulle(bas,  j);
           if (i < haut) lancerTriABulle(i, haut);
       }
+      for(int i=0;i<PVectors[i].length;i++){
+        println("point n°"+i+":["+PVectors[i].x+"]["+PVectors[i].y+"] 
+      }
   }
-  
+ ////////////////////////////////////////////////////////////////////// 
   
   public void draw()
   {
     background(0);
     arbre.draw(this.g, 0, 0, width, height);
+    
+    // paramettre = indice dans le tableau du point dont on veut connaitre le plus proche 
     arbre.trouverPlusProche(liste_PVectors.length/2);
   }
